@@ -1,21 +1,12 @@
 var express = require("express");
 var router = express.Router();
 const mongoose = require("mongoose");
+const Pill = require("../models/pill");
 
 mongoose.connect("mongodb://localhost:27017/pills_db", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
-const Schema = mongoose.Schema;
-const pillsScheme = new Schema({
-  title: String,
-  date: String,
-  description: String,
-  status: String,
-});
-
-const Pill = mongoose.model("Pill", pillsScheme);
 
 router.get("/", function (req, res, next) {
   Pill.find({}, function (err, docs) {
