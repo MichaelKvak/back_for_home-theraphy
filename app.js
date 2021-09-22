@@ -7,6 +7,7 @@ var cors = require("cors");
 
 var indexRouter = require("./routes/index");
 var pillsRouter = require("./routes/pills");
+var usersRouter = require("./routes/users");
 
 var app = express();
 app.use(cors());
@@ -21,8 +22,47 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+const { parseBearer } = require("./utils/token");
+
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  next();
+});
+
+app.use((req, res, next) => {
+  // const openPathes = [ '/users/login', '/users/signup', '/products' ];
+  const openPathes = ["/users/login", "/users/signup"];
+  if (!openPathes.includes(req.path)) {
+    try {
+      console.log("req.headers.authorization");
+      console.log(req.headers.authorization);
+
+      req.user = parseBearer(req.headers.authorization, req.headers);
+    } catch (err) {
+      return res.status(401).json({ result: "Access Denied" });
+    }
+  }
+  next();
+});
+
+app.use(function (req, res, next) {
+  //Додаємо поточний шлях як властивість до об_єкта req
+  req.current_dir = __dirname;
+
+  next();
+});
+
 app.use("/", indexRouter);
 app.use("/pills", pillsRouter);
+app.use("/users", usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
